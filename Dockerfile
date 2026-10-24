@@ -17,5 +17,16 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git . && git checkout ${
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip install -r requirements.txt
 
+# Network Volume（/runpod-volume）上のモデルを参照する設定
+# ComfyUIはルート直下の extra_model_paths.yaml を起動時に自動で読み込む
+COPY extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
+
 EXPOSE 8188
-CMD ["python", "main.py", "--listen", "0.0.0.0", "--port", "8188"]
+
+# output / input / user を Network Volume に置き、ワーカー停止後も残す
+CMD ["python", "main.py", \
+     "--listen", "0.0.0.0", \
+     "--port", "8188", \
+     "--output-directory", "/runpod-volume/ComfyUI/output", \
+     "--input-directory", "/runpod-volume/ComfyUI/input", \
+     "--user-directory", "/runpod-volume/ComfyUI/user"]

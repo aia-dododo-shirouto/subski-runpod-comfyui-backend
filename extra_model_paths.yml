@@ -1,0 +1,25 @@
+# Network Volume（Serverlessワーカーでは /runpod-volume にマウントされる）
+# S3 API でのパスは s3://<VOLUME_ID>/ComfyUI/models/... に対応する
+subski_volume:
+  base_path: /runpod-volume/ComfyUI/
+  # モデル一覧の先頭に表示し、ダウンロード時の既定の保存先にする
+  is_default: true
+  checkpoints: models/checkpoints/
+  diffusion_models: |
+    models/diffusion_models/
+    models/unet/
+  text_encoders: |
+    models/text_encoders/
+    models/clip/
+  clip_vision: models/clip_vision/
+  vae: models/vae/
+  loras: models/loras/
+  upscale_models: models/upscale_models/
+  controlnet: models/controlnet/
+  embeddings: models/embeddings/
+  model_patches: models/model_patches/
+  audio_encoders: models/audio_encoders/
+
+# 自作ノードの試作用（追加の pip 依存がないノードに限る。正式版はイメージに焼き込む）
+subski_dev_nodes:
+  custom_nodes: /runpod-volume/ComfyUI/custom_nodes_dev/
