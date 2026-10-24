@@ -29,9 +29,12 @@ COPY extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
 EXPOSE 8188
 
 # output / input / user を Network Volume に置き、ワーカー停止後も残す
-CMD ["python", "main.py", \
-     "--listen", "0.0.0.0", \
-     "--port", "8188", \
-     "--output-directory", "/runpod-volume/ComfyUI/output", \
-     "--input-directory", "/runpod-volume/ComfyUI/input", \
-     "--user-directory", "/runpod-volume/ComfyUI/user"]
+# CMD ["python", "main.py", \
+#      "--listen", "0.0.0.0", \
+#      "--port", "8188", \
+#      "--output-directory", "/runpod-volume/ComfyUI/output", \
+#      "--input-directory", "/runpod-volume/ComfyUI/input", \
+#      "--user-directory", "/runpod-volume/ComfyUI/user"]
+# --user-directory は存在しないパスだと起動時にエラー終了するため、先に作成してから起動する
+
+CMD ["bash", "-c", "mkdir -p /runpod-volume/ComfyUI/output /runpod-volume/ComfyUI/input /runpod-volume/ComfyUI/user && exec python main.py --listen 0.0.0.0 --port 8188 --output-directory /runpod-volume/ComfyUI/output --input-directory /runpod-volume/ComfyUI/input --user-directory /runpod-volume/ComfyUI/user"]
