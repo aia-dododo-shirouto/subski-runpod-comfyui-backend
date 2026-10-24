@@ -17,6 +17,11 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git . && git checkout ${
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip install -r requirements.txt
 
+# Load BalancerのヘルスチェックはHEALTH_CHECK_PATHを無視して常に /ping を叩くため、
+# ComfyUIのフロントエンド静的ディレクトリに ping ファイルを置いて 200 を返させる
+RUN python -c "import comfyui_frontend_package as p, os; \
+f=os.path.join(os.path.dirname(p.__file__),'static','ping'); open(f,'w').write('ok'); print(f)"
+
 # Network Volume（/runpod-volume）上のモデルを参照する設定
 # ComfyUIはルート直下の extra_model_paths.yaml を起動時に自動で読み込む
 COPY extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
