@@ -14,7 +14,8 @@ ARG COMFY_REF=master
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git . && git checkout ${COMFY_REF}
 
 # torchは先に公式CUDAビルドで入れる（requirements.txtが汎用版を入れないように）
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+# RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+RUN pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cu130
 RUN pip install -r requirements.txt
 
 # Load BalancerのヘルスチェックはHEALTH_CHECK_PATHを無視して常に /ping を叩くため、
