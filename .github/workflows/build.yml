@@ -20,6 +20,8 @@ permissions:
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}
+  # RunPod エンドポイント subski-comfyui-backend のテンプレート ID
+  RUNPOD_TEMPLATE_ID: n655zv5a8s
 
 jobs:
   build:
@@ -60,6 +62,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -70,7 +73,24 @@ jobs:
           build-args: |
             COMFY_REF=${{ inputs.comfy_ref || 'master' }}
 
-      - name: Show image tag for RunPod
+      # push したイメージの digest で RunPod のテンプレートを更新する（手でコピーすると取り違えるため）
+      - name: Update RunPod template image
+        env:
+          RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+          IMAGE_REF: ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
         run: |
-          echo "RunPod のエンドポイントに設定するイメージ:"
-          echo "${{ env.IMAGE }}:sha-${GITHUB_SHA::7}"
+          if [ -z "${RUNPOD_API_KEY}" ]; then
+            echo "::error::Secret RUNPOD_API_KEY が未設定です"
+            exit 1
+          fi
+          echo "テンプレート ${RUNPOD_TEMPLATE_ID} を ${IMAGE_REF} に更新します"
+          RESPONSE=$(curl -fsS -X PATCH "https://rest.runpod.io/v1/templates/${RUNPOD_TEMPLATE_ID}" \
+            -H "Authorization: Bearer ${RUNPOD_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"imageName\":\"${IMAGE_REF}\"}")
+          ACTUAL=$(echo "${RESPONSE}" | python3 -c "import json,sys;print(json.load(sys.stdin).get('imageName',''))")
+          echo "更新後の imageName: ${ACTUAL}"
+          if [ "${ACTUAL}" != "${IMAGE_REF}" ]; then
+            echo "::error::テンプレートの imageName が期待値と一致しません"
+            exit 1
+          fi
