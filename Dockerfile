@@ -19,6 +19,11 @@ RUN pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 --index-url
 RUN pip install -r requirements.txt
 RUN pip install -r manager_requirements.txt
 
+# llama-cpp-python（CUDA 13.0 ビルド済み wheel）。--no-deps で入れ、不足する diskcache だけ足す
+# numpy は llama-cpp-python の要求（<=2.3.2）に合わせて固定する（ローカル環境でもこの版でないと動かなかった）
+RUN pip install --no-deps "https://github.com/JamePeng/llama-cpp-python/releases/download/v0.4.5-cu130-linux-20261025/llama_cpp_python-0.4.5+cu130-cp312-cp312-linux_x86_64.whl" \
+ && pip install "diskcache>=5.6.2" "numpy==2.3.2"
+
 # Load BalancerのヘルスチェックはHEALTH_CHECK_PATHを無視して常に /ping を叩くため、
 # ComfyUIのフロントエンド静的ディレクトリに ping ファイルを置いて 200 を返させる
 RUN python -c "import comfyui_frontend_package as p, os; \
