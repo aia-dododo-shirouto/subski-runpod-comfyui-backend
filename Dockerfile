@@ -17,6 +17,7 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git . && git checkout ${
 # RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cu130
 RUN pip install -r requirements.txt
+RUN pip install -r manager_requirements.txt
 
 # Load BalancerのヘルスチェックはHEALTH_CHECK_PATHを無視して常に /ping を叩くため、
 # ComfyUIのフロントエンド静的ディレクトリに ping ファイルを置いて 200 を返させる
@@ -30,12 +31,5 @@ COPY extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
 EXPOSE 8188
 
 # output / input / user を Network Volume に置き、ワーカー停止後も残す
-# CMD ["python", "main.py", \
-#      "--listen", "0.0.0.0", \
-#      "--port", "8188", \
-#      "--output-directory", "/runpod-volume/ComfyUI/output", \
-#      "--input-directory", "/runpod-volume/ComfyUI/input", \
-#      "--user-directory", "/runpod-volume/ComfyUI/user"]
-
 # --user-directory は存在しないパスだと起動時にエラー終了するため、先に作成してから起動する
-CMD ["bash", "-c", "mkdir -p /runpod-volume/ComfyUI/output /runpod-volume/ComfyUI/input /runpod-volume/ComfyUI/user /runpod-volume/ComfyUI/custom_nodes_dev && exec python main.py --listen 0.0.0.0 --port 8188 --output-directory /runpod-volume/ComfyUI/output --input-directory /runpod-volume/ComfyUI/input --user-directory /runpod-volume/ComfyUI/user"]
+CMD ["bash", "-c", "mkdir -p /runpod-volume/ComfyUI/output /runpod-volume/ComfyUI/input /runpod-volume/ComfyUI/user /runpod-volume/ComfyUI/custom_nodes_dev && cd /ComfyUI && exec python main.py --listen 0.0.0.0 --port 8188 --output-directory /runpod-volume/ComfyUI/output --input-directory /runpod-volume/ComfyUI/input --user-directory /runpod-volume/ComfyUI/user --enable-manager"]
