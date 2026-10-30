@@ -24,6 +24,13 @@ RUN pip install -r manager_requirements.txt
 RUN pip install --no-deps "https://github.com/JamePeng/llama-cpp-python/releases/download/v0.4.5-cu130-linux-20261025/llama_cpp_python-0.4.5+cu130-cp312-cp312-linux_x86_64.whl" \
  && pip install "diskcache>=5.6.2" "numpy==2.3.2"
 
+# Install cv2 for ComfyUI-Easy-Use
+# GUI 版の opencv-python は libGL などを要求し、slim イメージでは import に失敗するため headless 版を使う
+RUN pip install opencv-python-headless
+
+# ComfyUI Nvidia VFX Nodes 用。PyPI の nvidia-vfx はスタブで、実体の wheel は NVIDIA のインデックスにある
+RUN pip install --extra-index-url https://pypi.nvidia.com "nvidia-vfx>=0.2"
+
 # Load BalancerのヘルスチェックはHEALTH_CHECK_PATHを無視して常に /ping を叩くため、
 # ComfyUIのフロントエンド静的ディレクトリに ping ファイルを置いて 200 を返させる
 RUN python -c "import comfyui_frontend_package as p, os; \
