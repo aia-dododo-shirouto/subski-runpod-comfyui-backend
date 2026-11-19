@@ -31,6 +31,14 @@ RUN pip install opencv-python-headless
 # ComfyUI Nvidia VFX Nodes 用。PyPI の nvidia-vfx はスタブで、実体の wheel は NVIDIA のインデックスにある
 RUN pip install --extra-index-url https://pypi.nvidia.com "nvidia-vfx>=0.2"
 
+# Gemini Media2Text ノード（自作）。イメージに同梱する（NV の custom_nodes とは別に /ComfyUI/custom_nodes から読まれる）
+# 依存は google-genai のみ（av・numpy・Pillow は ComfyUI 本体の requirements で入る）
+# APIキーは RunPod の環境変数 GEMINI_API_KEY で渡す（イメージやリポジトリに入れない）
+ARG GEMINI_M2T_REF=main
+RUN git clone https://github.com/dododoshirouto/ComfyUI-Gemini-Media2Text.git custom_nodes/ComfyUI-Gemini-Media2Text \
+ && git -C custom_nodes/ComfyUI-Gemini-Media2Text checkout ${GEMINI_M2T_REF} \
+ && pip install -r custom_nodes/ComfyUI-Gemini-Media2Text/requirements.txt
+
 # Load BalancerのヘルスチェックはHEALTH_CHECK_PATHを無視して常に /ping を叩くため、
 # ComfyUIのフロントエンド静的ディレクトリに ping ファイルを置いて 200 を返させる
 RUN python -c "import comfyui_frontend_package as p, os; \
@@ -43,5 +51,6 @@ COPY extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
 EXPOSE 8188
 
 # output / input / user を Network Volume に置き、ワーカー停止後も残す
+# Gemini Media2Text のキャッシュは user/gemini_media2text/cache に保存される（--user-directory 配下）
 # --user-directory は存在しないパスだと起動時にエラー終了するため、先に作成してから起動する
-CMD ["bash", "-c", "mkdir -p /runpod-volume/ComfyUI/output /runpod-volume/ComfyUI/input /runpod-volume/ComfyUI/user /runpod-volume/ComfyUI/custom_nodes /runpod-volume/ComfyUI/models/{LLM,audio_encoders,background_removal,checkpoints,clip_vision,controlnet,detection,diffusers,diffusion_models,embeddings,frame_interpolation,geometry_estimation,gligen,hypernetworks,kjnodes_fonts,latent_upscale_models,loras,model_patches,optical_flow,photomaker,style_models,text_encoders,upscale_models,vae,vae_approx} && cd /ComfyUI && exec python main.py --listen 0.0.0.0 --port 8188 --output-directory /runpod-volume/ComfyUI/output --input-directory /runpod-volume/ComfyUI/input --user-directory /runpod-volume/ComfyUI/user --enable-manager"]
+CMD ["bash", "-c", "mkdir -p /runpod-volume/ComfyUI/output /runpod-volume/ComfyUI/input /runpod-volume/ComfyUI/user/gemini_media2text/cache /runpod-volume/ComfyUI/custom_nodes /runpod-volume/ComfyUI/models/{LLM,audio_encoders,background_removal,checkpoints,clip_vision,controlnet,detection,diffusers,diffusion_models,embeddings,frame_interpolation,geometry_estimation,gligen,hypernetworks,kjnodes_fonts,latent_upscale_models,loras,model_patches,optical_flow,photomaker,style_models,text_encoders,upscale_models,vae,vae_approx} && cd /ComfyUI && exec python main.py --listen 0.0.0.0 --port 8188 --output-directory /runpod-volume/ComfyUI/output --input-directory /runpod-volume/ComfyUI/input --user-directory /runpod-volume/ComfyUI/user --enable-manager"]
