@@ -10,7 +10,7 @@
 - Endpoint Type: Load Balancer / Max workers: 1 / Idle timeout: 300
 - CUDA version: 12.8 以上をすべて選択
 - Expose HTTP Ports: 8188
-- 環境変数: PORT=8188, PORT_HEALTH=8188
+- 環境変数: PORT=8188, PORT_HEALTH=8188, GEMINI_API_KEY（Gemini Media2Text ノード用。Secret で登録）
 - Health check endpoint: /system_stats
 
 ## 注意
