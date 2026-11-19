@@ -74,6 +74,7 @@ jobs:
             COMFY_REF=${{ inputs.comfy_ref || 'master' }}
 
       # push したイメージの digest で RunPod のテンプレートを更新する（手でコピーすると取り違えるため）
+      # REST API v1（rest.runpod.io）は 2026-11-15 に廃止。v2 ではフィールド名が imageName から image に変わった
       - name: Update RunPod template image
         env:
           RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
@@ -84,13 +85,13 @@ jobs:
             exit 1
           fi
           echo "テンプレート ${RUNPOD_TEMPLATE_ID} を ${IMAGE_REF} に更新します"
-          RESPONSE=$(curl -fsS -X PATCH "https://rest.runpod.io/v1/templates/${RUNPOD_TEMPLATE_ID}" \
+          RESPONSE=$(curl -sS --fail-with-body -X PATCH "https://api.runpod.io/v2/templates/${RUNPOD_TEMPLATE_ID}" \
             -H "Authorization: Bearer ${RUNPOD_API_KEY}" \
             -H "Content-Type: application/json" \
-            -d "{\"imageName\":\"${IMAGE_REF}\"}")
-          ACTUAL=$(echo "${RESPONSE}" | python3 -c "import json,sys;print(json.load(sys.stdin).get('imageName',''))")
-          echo "更新後の imageName: ${ACTUAL}"
+            -d "{\"image\":\"${IMAGE_REF}\"}")
+          ACTUAL=$(echo "${RESPONSE}" | python3 -c "import json,sys;print(json.load(sys.stdin).get('image',''))")
+          echo "更新後の image: ${ACTUAL}"
           if [ "${ACTUAL}" != "${IMAGE_REF}" ]; then
-            echo "::error::テンプレートの imageName が期待値と一致しません"
+            echo "::error::テンプレートの image が期待値と一致しません"
             exit 1
           fi
